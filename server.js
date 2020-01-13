@@ -3,20 +3,24 @@ const app = express();
 const cors = require("cors");
 const logger = require("morgan");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+require("dotenv").config();
+
+//db connect
 
 //middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+// app.use(cors()); allow all origin
 app.use(logger("dev"));
-dotenv.config();
 
+if ((process.env.NODE_ENV = "development")) {
+  app.use(cors({ origin: "http://localhost:3000" }));
+}
 //import routes
 const authRoutes = require("./routes/auth");
 
 // use routes
 app.use("/api", authRoutes);
 
-const port = process.env.port || 8000;
+const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`I am running at ${port}`));
