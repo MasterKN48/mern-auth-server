@@ -77,6 +77,33 @@ exports.signup = (req, res) => {
       });
   });
 };
+exports.signin = (req, res) => {
+  console.log(req.body);
+  const { email, password } = req.body;
+  User.findOne({ email }).exec((err, usr) => {
+    if (err || !usr) {
+      return res.status(400).json({
+        error: "User with that emailnot exist.Please Signup!"
+      });
+    }
+    //authenticate by schema method
+    if (!usr.authenticate(password)) {
+      return res.status(400).json({
+        error: "Email-Password do not match"
+      });
+    }
+
+    //generate token for client
+    const token = jwt.sign({ _id: usr._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d"
+    });
+    const { name, email, _id, role } = usr;
+    return res.json({
+      token,
+      user: { _id, name, role, email }
+    });
+  });
+};
 
 exports.accountActivation = (req, res) => {
   const { token } = req.body;
@@ -95,9 +122,8 @@ exports.accountActivation = (req, res) => {
       const user = new User({ name, email, password });
       user.save((err, usr) => {
         if (err) {
-          console.log("save user error while activation");
           return res.status(401).json({
-            error: "Saving User in db,signup again"
+            error: "User Already activated!"
           });
         }
         return res.json({
