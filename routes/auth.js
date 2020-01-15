@@ -5,7 +5,8 @@ const {
   signin,
   accountActivation,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  googleLogin
 } = require("../controller/auth");
 const {
   userSignupValidator,
@@ -32,5 +33,5 @@ router.put(
   runValidation,
   resetPassword
 );
-
+router.post("/google-login", googleLogin);
 module.exports = router; //{} exports empty object

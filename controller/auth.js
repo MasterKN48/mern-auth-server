@@ -220,3 +220,53 @@ exports.resetPassword = (req, res) => {
     });
   }
 };
+//soical login
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.REACT_APP_GCLIENT_ID);
+exports.googleLogin = (req, res) => {
+  const { idToken } = req.body;
+  client
+    .verifyIdToken({ idToken, audience: process.env.REACT_APP_GCLIENT_ID })
+    .then(res => {
+      const { email_verified, name, email } = res.payload;
+      if (email_verified) {
+        User.findOne({ email }).exec((err, usr) => {
+          if (usr) {
+            const token = jwt.sign({ _id: user._id }, process.JWT_SECRET, {
+              expiresIn: "7d"
+            });
+            const { _id, name, email, role } = usr;
+            return res.json({
+              token,
+              user: { _id, email, name, role }
+            });
+          } else {
+            // usr not exist create new usr
+            let password = email + process.env.JWT_SECRET;
+            usr = new User() = { name, email, password };
+            usr.save((err, data) => {
+              if (err) {
+                console.log("Error glogin user save");
+                return res.status(400).json({
+                  error: "User accoutn failed to create with google"
+                });
+              }
+              const token = jwt.sign({ _id: data._id }, process.JWT_SECRET, {
+                expiresIn: "7d"
+              });
+              const { _id, name, email, role } = data;
+              return res.json({
+                token,
+                user: { _id, email, name, role }
+              });
+            });
+          }
+        });
+      } else {
+        // email not verified
+        return res.status(400).json({
+          error: "Google login failed try again"
+        });
+      }
+    });
+};
