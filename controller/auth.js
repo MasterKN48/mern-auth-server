@@ -1,35 +1,9 @@
 const User = require("../model/User");
 const jwt = require("jsonwebtoken");
+const expressJWT = require("express-jwt");
+
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-// exports.signup = (req, res) => {
-//   const { name, email, password } = req.body;
-//   User.findOne({ email }).exec((err, usr) => {
-//     if (usr) {
-//       return res.status(400).json({
-//         error: "Email is taken"
-//       });
-//     }
-//     if (err) {
-//       return res.status(500).json({
-//         error: err
-//       });
-//     }
-//   });
-//   let newUser = new User({ name, email, password });
-//   newUser.save((err, usr) => {
-//     if (err) {
-//       console.log("signup error", err);
-//       return res.status(400).json({
-//         error: err
-//       });
-//     }
-//     res.json({
-//       msg: "Signup success!"
-//     });
-//   });
-// };
 
 //check email before signup to
 exports.signup = (req, res) => {
@@ -136,4 +110,25 @@ exports.accountActivation = (req, res) => {
       error: "Something went wrong"
     });
   }
+};
+
+exports.requireSignin = expressJWT({
+  secret: process.env.JWT_SECRET // validate user by token as middleware and give req.user available
+});
+// auth for admin +requireSignin=req.user
+exports.adminMiddleware = (req, res, next) => {
+  User.findById({ _id: req.user._id }).exec((err, usr) => {
+    if (err || !usr) {
+      return res.status(401).json({
+        error: "User not found!"
+      });
+    }
+    if (usr.role != "admin") {
+      return res.status(400).json({
+        error: "Admin resource. Access denied."
+      });
+    }
+    req.profile = usr; //make avilable
+    next();
+  });
 };

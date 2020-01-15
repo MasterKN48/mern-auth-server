@@ -27,9 +27,10 @@ if ((process.env.NODE_ENV = "development")) {
 }
 //import routes
 const authRoutes = require("./routes/auth");
-
+const userRoutes = require("./routes/user");
 // use routes
 app.use("/api", authRoutes);
+app.use("/api", userRoutes);
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`I am running at ${port}`));
