@@ -25,7 +25,7 @@ router.put(
   runValidation,
   forgotPassword
 );
-//reset password
+// reset password
 router.put(
   "/reset-password",
   resetPasswordValidator,
